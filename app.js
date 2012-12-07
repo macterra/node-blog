@@ -10,7 +10,8 @@ var express = require('express')
   , path = require('path');
 
 var app = express();
-var ArticleProvider = require('./articleprovider-memory').ArticleProvider;
+//var ArticleProvider = require('./articleprovider-memory').ArticleProvider;
+var ArticleProvider = require('./articleprovider-mongodb').ArticleProvider;
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
@@ -33,7 +34,8 @@ app.get('/', routes.index);
 app.get('/users', user.list);
 
 
-var articleProvider= new ArticleProvider();
+//var articleProvider= new ArticleProvider();
+var articleProvider = new ArticleProvider('localhost', 27017);
 
 app.get('/blog', function(req, res){
     articleProvider.findAll( function(error,docs){
@@ -57,6 +59,25 @@ app.post('/blog/new', function(req, res){
     }, function( error, docs) {
         res.redirect('/blog')
     });
+});
+
+app.get('/blog/:id', function(req, res) {
+    articleProvider.findById(req.params.id, function(error, article) {
+        res.render('blog_show.jade', {
+            title: article.title,
+            article:article
+        });
+    });
+});
+
+app.post('/blog/addComment', function(req, res) {
+    articleProvider.addCommentToArticle(req.param('_id'), {
+        person: req.param('person'),
+        comment: req.param('comment'),
+        created_at: new Date()
+       } , function( error, docs) {
+           res.redirect('/blog/' + req.param('_id'))
+       });
 });
 
 http.createServer(app).listen(app.get('port'), function(){
