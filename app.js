@@ -44,6 +44,21 @@ app.get('/blog', function(req, res){
     })
 });
 
+app.get('/blog/new', function(req, res) {
+    res.render('blog_new.jade', { 
+        title: 'New Post'
+    });
+});
+
+app.post('/blog/new', function(req, res){
+    articleProvider.save({
+        title: req.param('title'),
+        body: req.param('body')
+    }, function( error, docs) {
+        res.redirect('/blog')
+    });
+});
+
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
